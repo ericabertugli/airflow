@@ -150,6 +150,7 @@ async_packages = [
 atlas = ['atlasclient>=0.1.2']
 aws = [
     'boto3>=1.7.0, <1.8.0',
+    'watchtower>=0.7.3'
 ]
 azure = [
     'azure-storage>=0.34.0',

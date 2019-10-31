@@ -67,6 +67,52 @@ To enable this feature, ``airflow.cfg`` must be configured as follows:
 
 In the above example, Airflow will try to use ``S3Hook('MyS3Conn')``.
 
+.. _write-logs-amazon-cloudwatch:
+
+Writing Logs to Amazon CloudWatch
+---------------------------------
+
+Airflow can be configured to read and write task logs to Amazon CloudWatch.
+
+Follow the steps below to enable Amazon CloudWatch logging:
+
+#. Airflow's logging system requires a custom ``.py`` file to be located in the ``PYTHONPATH``, so that it's importable from Airflow. Start by creating a directory to store the config file, ``$AIRFLOW_HOME/config`` is recommended.
+#. Create empty files called ``$AIRFLOW_HOME/config/log_config.py`` and ``$AIRFLOW_HOME/config/__init__.py``.
+#. Copy the contents of ``airflow/config_templates/airflow_local_settings.py`` into the ``log_config.py`` file created in ``Step 2``.
+#. In the ``$AIRFLOW_HOME/config/log_config.py`` file add a new handler like the following:
+
+    .. code-block:: json
+
+        'cloudwatch-task': {
+            'class': 'cloudwatch_task_handler.CloudwatchTaskHandler',
+            'log_group': 'airflow/dags',
+            'formatter': 'aws',
+            'filename_template': FILENAME_TEMPLATE,
+            'region_name': 'us-east-1',
+        }
+
+#. In the ``$AIRFLOW_HOME/config/log_config.py`` file modify the existing task logger like the following:
+
+    .. code-block:: json
+
+        'airflow.task': {
+            'handlers': ['task', 'cloudwatch-task'],
+            'level': LOG_LEVEL,
+            'propagate': False,
+        }
+
+#. Make sure your Airflow instance has read and write access to Amazon CloudWatch.
+
+#. Update ``$AIRFLOW_HOME/airflow.cfg`` to contain:
+
+    .. code-block:: bash
+
+        logging_config_class = log_config.LOGGING_CONFIG
+
+#. Restart the Airflow webserver and scheduler, and trigger (or wait for) a new task execution.
+#. Verify that logs are showing up for newly executed tasks in Amazon CloudWatch.
+
+
 .. _write-logs-azure:
 
 Writing Logs to Azure Blob Storage
